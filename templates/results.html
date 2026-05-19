@@ -3,8 +3,12 @@
 {% block title %}Results — ZenvaResizer{% endblock %}
 {% block max_width %}52rem{% endblock %}
 
+{% block header_nav %}
+<a href="{{ url_for('index') }}">New batch</a>
+{% endblock %}
+
 {% block page_header %}
-<h1 class="brand">Resized</h1>
+<h2 class="page-title">Resized</h2>
 <p class="meta">{{ results|length }} image(s) · {{ width }}×{{ height }} px · quality {{ quality }}</p>
 {% endblock %}
 
