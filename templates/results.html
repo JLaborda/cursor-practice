@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}Results — ZenvaResizer{% endblock %}
+{% block max_width %}52rem{% endblock %}
+
+{% block header_nav %}
+<a href="{{ url_for('index') }}">New batch</a>
+{% endblock %}
+
+{% block page_header %}
+<h2 class="page-title">Resized</h2>
+<p class="meta">{{ results|length }} image(s) · {{ width }}×{{ height }} px · quality {{ quality }}{% if rotate %} · rotated {{ rotate }}°{% endif %}</p>
+{% endblock %}
+
+{% block content %}
+{% for item in results %}
+<article class="card">
+  <h2>{{ item.original }}</h2>
+  <div class="preview">
+    <img src="{{ url_for('serve_upload', filename=item.name) }}" alt="Resized {{ item.original }}">
+  </div>
+  <a class="download" href="{{ url_for('download_file', filename=item.name) }}" download>↓ Download {{ item.name }}</a>
+</article>
+{% endfor %}
+
+<p class="back"><a href="{{ url_for('index') }}">← Resize more images</a></p>
+{% endblock %}

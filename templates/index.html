@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}ZenvaResizer{% endblock %}
+
+{% block page_header %}
+<p class="tagline">Upload up to {{ max_files }} images and resize them in seconds.</p>
+{% endblock %}
+
+{% block content %}
+{% if error %}
+<p class="error">{{ error }}</p>
+{% endif %}
+
+<form class="panel" method="post" enctype="multipart/form-data">
+  <label>
+    Images
+    <input type="file" name="images" accept=".png,.jpeg,.jpg,.PNG,.JPEG,.JPG" multiple required>
+  </label>
+  <div class="dims">
+    <label>
+      Width
+      <input type="number" name="width" min="1" value="800" required>
+    </label>
+    <label>
+      Height
+      <input type="number" name="height" min="1" value="600" required>
+    </label>
+    <label>
+      Quality
+      <input type="number" name="quality" min="1" max="100" value="85" required title="JPEG quality 1–100">
+    </label>
+    <label>
+      Rotate
+      <select name="rotate">
+        <option value="0" selected>None</option>
+        <option value="90">90°</option>
+        <option value="180">180°</option>
+        <option value="270">270°</option>
+      </select>
+    </label>
+  </div>
+  <button type="submit">Resize</button>
+</form>
+{% endblock %}
