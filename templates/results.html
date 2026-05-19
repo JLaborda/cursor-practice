@@ -1,32 +1,23 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Results — ZenvaResizer</title>
-  <style>
-    body { font-family: system-ui, sans-serif; max-width: 48rem; margin: 2rem auto; padding: 0 1rem; }
-    h1 { font-size: 1.5rem; }
-    .meta { color: #555; margin-bottom: 1.5rem; }
-    .card { border: 1px solid #ddd; border-radius: 6px; padding: 1rem; margin-bottom: 1.5rem; }
-    .card h2 { font-size: 1rem; margin: 0 0 0.75rem; }
-    .card img { max-width: 100%; height: auto; display: block; margin-bottom: 0.75rem; }
-    a { color: #1565c0; }
-    .back { margin-top: 2rem; }
-  </style>
-</head>
-<body>
-  <h1>Resized images</h1>
-  <p class="meta">{{ results|length }} image(s) at {{ width }}×{{ height }} px, quality {{ quality }}.</p>
+{% extends "base.html" %}
 
-  {% for item in results %}
-  <article class="card">
-    <h2>{{ item.original }}</h2>
+{% block title %}Results — ZenvaResizer{% endblock %}
+{% block max_width %}52rem{% endblock %}
+
+{% block page_header %}
+<h1 class="brand">Resized</h1>
+<p class="meta">{{ results|length }} image(s) · {{ width }}×{{ height }} px · quality {{ quality }}</p>
+{% endblock %}
+
+{% block content %}
+{% for item in results %}
+<article class="card">
+  <h2>{{ item.original }}</h2>
+  <div class="preview">
     <img src="{{ url_for('serve_upload', filename=item.name) }}" alt="Resized {{ item.original }}">
-    <a href="{{ url_for('download_file', filename=item.name) }}" download>Download {{ item.name }}</a>
-  </article>
-  {% endfor %}
+  </div>
+  <a class="download" href="{{ url_for('download_file', filename=item.name) }}" download>↓ Download {{ item.name }}</a>
+</article>
+{% endfor %}
 
-  <p class="back"><a href="{{ url_for('index') }}">Resize more images</a></p>
-</body>
-</html>
+<p class="back"><a href="{{ url_for('index') }}">← Resize more images</a></p>
+{% endblock %}

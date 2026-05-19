@@ -122,7 +122,7 @@ class TestIndex:
             content_type="multipart/form-data",
         )
         assert response.status_code == 200
-        assert b"Resized images" in response.data
+        assert b"Resized" in response.data
         saved = list(tmp_path.glob("*.png"))
         assert len(saved) == 1
         with Image.open(saved[0]) as img:
