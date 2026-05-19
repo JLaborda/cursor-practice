@@ -9,7 +9,7 @@
 
 {% block page_header %}
 <h2 class="page-title">Resized</h2>
-<p class="meta">{{ results|length }} image(s) · {{ width }}×{{ height }} px · quality {{ quality }}</p>
+<p class="meta">{{ results|length }} image(s) · {{ width }}×{{ height }} px · quality {{ quality }}{% if rotate %} · rotated {{ rotate }}°{% endif %}</p>
 {% endblock %}
 
 {% block content %}

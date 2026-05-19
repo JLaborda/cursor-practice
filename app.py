@@ -1,4 +1,3 @@
-import os
 import uuid
 from pathlib import Path
 
@@ -11,6 +10,7 @@ app = Flask(__name__)
 UPLOAD_FOLDER = Path("uploads")
 ALLOWED_EXTENSIONS = {"png", "jpeg", "jpg"}
 MAX_FILES = 5
+ALLOWED_ROTATIONS = {0, 90, 180, 270}
 
 
 def allowed_file(filename: str) -> bool:
@@ -19,11 +19,32 @@ def allowed_file(filename: str) -> bool:
     return filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
-def resize_image(src: Path, dest: Path, width: int, height: int, quality: int) -> None:
+def parse_rotate(value: str | None) -> int | None:
+    if value is None or value.strip() == "":
+        return 0
+    try:
+        degrees = int(value)
+    except (TypeError, ValueError):
+        return None
+    if degrees not in ALLOWED_ROTATIONS:
+        return None
+    return degrees
+
+
+def resize_image(
+    src: Path,
+    dest: Path,
+    width: int,
+    height: int,
+    quality: int,
+    rotate: int = 0,
+) -> None:
     with Image.open(src) as img:
         if img.mode in ("RGBA", "P") and dest.suffix.lower() in (".jpg", ".jpeg"):
             img = img.convert("RGB")
         resized = img.resize((width, height), Image.Resampling.LANCZOS)
+        if rotate:
+            resized = resized.rotate(rotate, expand=True)
         if dest.suffix.lower() in (".jpg", ".jpeg"):
             resized.save(dest, quality=quality, optimize=True)
         else:
@@ -70,6 +91,14 @@ def index():
             error="Width and height must be at least 1; quality must be 1–100.",
         ), 400
 
+    rotate = parse_rotate(request.form.get("rotate"))
+    if rotate is None:
+        return render_template(
+            "index.html",
+            max_files=MAX_FILES,
+            error="Rotation must be 0, 90, 180, or 270 degrees.",
+        ), 400
+
     UPLOAD_FOLDER.mkdir(exist_ok=True)
     results = []
 
@@ -89,7 +118,7 @@ def index():
 
         upload.save(out_path)
         try:
-            resize_image(out_path, out_path, width, height, quality)
+            resize_image(out_path, out_path, width, height, quality, rotate)
         except Exception:
             out_path.unlink(missing_ok=True)
             return render_template(
@@ -106,6 +135,7 @@ def index():
         width=width,
         height=height,
         quality=quality,
+        rotate=rotate,
     )
 
 

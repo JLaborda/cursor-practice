@@ -41,6 +41,24 @@ class TestAllowedFile:
         assert zenva.allowed_file(filename) is expected
 
 
+class TestParseRotate:
+    @pytest.mark.parametrize(
+        "value,expected",
+        [
+            (None, 0),
+            ("", 0),
+            ("0", 0),
+            ("90", 90),
+            ("180", 180),
+            ("270", 270),
+            ("45", None),
+            ("abc", None),
+        ],
+    )
+    def test_parse_rotate(self, value, expected):
+        assert zenva.parse_rotate(value) == expected
+
+
 class TestResizeImage:
     def test_resizes_to_target_dimensions(self, tmp_path):
         src = tmp_path / "in.png"
@@ -49,6 +67,22 @@ class TestResizeImage:
         zenva.resize_image(src, dest, 50, 30, 85)
         with Image.open(dest) as img:
             assert img.size == (50, 30)
+
+    def test_rotate_90_swaps_dimensions_after_resize(self, tmp_path):
+        src = tmp_path / "in.png"
+        dest = tmp_path / "out.png"
+        Image.new("RGB", (200, 100), "red").save(src)
+        zenva.resize_image(src, dest, 40, 25, 85, rotate=90)
+        with Image.open(dest) as img:
+            assert img.size == (25, 40)
+
+    def test_rotate_180_keeps_dimensions(self, tmp_path):
+        src = tmp_path / "in.png"
+        dest = tmp_path / "out.png"
+        Image.new("RGB", (200, 100), "red").save(src)
+        zenva.resize_image(src, dest, 40, 25, 85, rotate=180)
+        with Image.open(dest) as img:
+            assert img.size == (40, 25)
 
 
 class TestIndex:
@@ -96,6 +130,21 @@ class TestIndex:
         assert response.status_code == 400
         assert b"PNG, JPEG, and JPG" in response.data
 
+    def test_post_invalid_rotate_returns_400(self, client):
+        response = client.post(
+            "/",
+            data={
+                "images": _image_file("photo.png"),
+                "width": "10",
+                "height": "10",
+                "quality": "80",
+                "rotate": "45",
+            },
+            content_type="multipart/form-data",
+        )
+        assert response.status_code == 400
+        assert b"Rotation must be" in response.data
+
     def test_post_invalid_quality_returns_400(self, client):
         response = client.post(
             "/",
@@ -127,6 +176,23 @@ class TestIndex:
         assert len(saved) == 1
         with Image.open(saved[0]) as img:
             assert img.size == (40, 25)
+
+    def test_post_with_rotate_90_shows_rotation_in_results(self, client, tmp_path):
+        response = client.post(
+            "/",
+            data={
+                "images": _image_file("rotated.png"),
+                "width": "40",
+                "height": "25",
+                "quality": "90",
+                "rotate": "90",
+            },
+            content_type="multipart/form-data",
+        )
+        assert response.status_code == 200
+        assert b"rotated 90" in response.data
+        with Image.open(list(tmp_path.glob("*.png"))[0]) as img:
+            assert img.size == (25, 40)
 
     def test_serve_and_download_processed_file(self, client, tmp_path):
         post = client.post(
